@@ -1,4 +1,8 @@
+import datetime as dt
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+max_year_title = dt.date.today()
 
 
 class User(models.Model):
@@ -7,9 +11,9 @@ class User(models.Model):
         verbose_name='Никнэйм',
         help_text='Никнэйм'
     )
-    email = 
-    role = 
-    bio = 
+    email =
+    role =
+    bio =
     first_name = models.CharField(
         max_length=256,
         verbose_name='Имя',
@@ -32,18 +36,33 @@ class Title(models.Model):
         verbose_name='Название',
         help_text='Название произведения'
     )
-    year = models.IntegerField(
-        blank=True, null=True,
+    year = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        db_index=True,
+        validators=[
+            MinValueValidator(0),
+            max_year_title],
         verbose_name='Год произведения',
         help_text='Год произведения'
     )
+    genre = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        verbose_name='Жанр'
+    )
     category = models.ForeignKey(
         'Category',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='titles',
         verbose_name='Категория',
         help_text='Категория'
     )
 
     class Meta:
+        ordering = ['-year']
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
 
@@ -73,6 +92,22 @@ class Category(models.Model):
         return self.name
 
 
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f'{self.genre}{self.title}'
+
+
 class Genre(models.Model):
     name = models.CharField(
         max_length=256,
@@ -88,6 +123,7 @@ class Genre(models.Model):
     )
 
     class Meta:
+        ordering = ['-name']
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
 
@@ -101,6 +137,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Заголовок',
         help_text='Заголовок отзыва'
+        related_name='reviews'
     )
     text = models.TextField(
         verbose_name='Текст',
@@ -111,17 +148,34 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Автор',
         help_text='Автор отзыва'
+        related_name='reviews'
     )
-    score = models.ImageField(blank=True, null=True)
-    pud_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True,
-        help_text='Дата публикации отзыва'
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Рейтинг',
+        validators=[
+            MinValueValidator(1, 'Допустимы значения от 1 до 10'),
+            MaxValueValidator(10, 'Допустимы значения от 1 до 10')
+        ]
+    )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True,
+        db_index=True
     )
 
     class Meta:
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('pub_date',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Comment(models.Model):
@@ -130,6 +184,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Отзыв',
         help_text='Отзыв'
+        related_name='comments'
 
     )
     text = models.TextField(
@@ -141,13 +196,19 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Автор',
         help_text='Автор комментария'
+        related_name='comments'
     )
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True,
+        verbose_name='Дата публикации',
+        auto_now_add=True,
+        db_index=True
         help_text='Дата публикации комментария'
     )
 
     class Meta:
-        verbose_name = 'комментарий'
+        ordering = ['-pub_date']
+        verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ('pub_date',)
+
+    def __str__(self) -> str:
+        return self.name
