@@ -6,7 +6,7 @@ from django_filters.rest_framework import (
     CharFilter,
     NumberFilter,
 )
-from rest_framework import filters, status, mixins, viewsets
+from rest_framework import filters, mixins, viewsets
 
 
 from api.serializers import (
@@ -45,11 +45,11 @@ class GenreViewSet:
     lookup_field = 'slug'
 
 
-class TitleFilters(django_filters.FilterSet):
-    genre = django_filters.CharFilter(field_name='genre__slug')
-    category = django_filters.CharFilter(field_name='category__slug')
-    year = django_filters.NumberFilter(field_name='year')
-    name = django_filters.CharFilter(field_name='name', lookup_expr='contains')
+class TitleFilters(FilterSet):
+    genre = CharFilter(field_name='genre__slug')
+    category = CharFilter(field_name='category__slug')
+    year = NumberFilter(field_name='year')
+    name = CharFilter(field_name='name', lookup_expr='contains')
 
     class Meta:
         model = Title
