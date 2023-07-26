@@ -5,7 +5,7 @@ from django.db import models
 
 User = get_user_model()
 
-max_year_title = dt.date.today()
+max_year_title = dt.date.today().year
 
 
 # class User(models.Model):
@@ -50,12 +50,12 @@ class Title(models.Model):
         help_text='Год произведения'
     )
     genre = models.ManyToManyField(
-        'Genre',
-        'Жанр',
+        Genre,
+        verbose_name='Жанр',
         through='GenreTitle',
     )
     category = models.ForeignKey(
-        'Category',
+        Category,
         verbose_name='Категория',
         on_delete=models.SET_NULL,
         null=True,
@@ -97,7 +97,7 @@ class Category(models.Model):
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
-        'Genre',
+        Genre,
         on_delete=models.SET_NULL,
         blank=True,
         null=True
