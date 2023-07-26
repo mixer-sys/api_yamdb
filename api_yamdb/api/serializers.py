@@ -30,7 +30,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = __all__
+        fields = '__all__'
 
     def validate_year(self, value):
         current_year = dt.date.today().year
@@ -47,4 +47,4 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = __all_
+        fields = '__all__'
