@@ -1,7 +1,7 @@
 import datetime as dt
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
+from users.models import User
 max_year_title = dt.date.today().year
 
 
@@ -119,7 +119,7 @@ class Review(models.Model):
         help_text='Текст отзыва'
     )
     author = models.ForeignKey(
-        'User',
+        User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         help_text='Автор отзыва',
@@ -164,7 +164,7 @@ class Comment(models.Model):
         help_text='Текст комментария'
     )
     author = models.ForeignKey(
-        'User',
+        User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         help_text='Автор комментария',
