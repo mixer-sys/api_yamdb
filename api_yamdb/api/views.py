@@ -11,10 +11,10 @@ from api.serializers import (
     GenreSerializer,
     TitleCreateSerializer,
     TitleSerializer,
+    ReviewSerializer,
+    CommentSerializer
 )
-from reviews.models import Category, Genre, Title
-from reviews.models import Review, Comment
-from api.serializers import ReviewSerializer, CommentSerializer
+from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
 
 
@@ -92,7 +92,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def perform_create(self, serializer):
-        serializer.save(author=User.objects.all()[0],
+        serializer.save(author=self.request.user,
                         review_id=self.kwargs.get('review_id'))
 
 

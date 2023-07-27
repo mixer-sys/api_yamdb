@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import Textarea
-from reviews.models import Comment, Review, Title, Genre, GenreTitle
-from reviews.models import Category
+from reviews.models import Comment, Review, Title, Genre, GenreTitle, Category
 
 
 class ViewSettings(admin.ModelAdmin):
