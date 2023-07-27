@@ -1,36 +1,8 @@
 import datetime as dt
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-User = get_user_model()
-
+from users.models import User
 max_year_title = dt.date.today().year
-
-
-# class User(models.Model):
-#     username = models.CharField(
-#         max_length=256,
-#         verbose_name='Никнэйм',
-#         help_text='Никнэйм'
-#     )
-#     email =
-#     role =
-#     bio =
-#     first_name = models.CharField(
-#         max_length=256,
-#         verbose_name='Имя',
-#         help_text='Имя пользователя'
-#     )
-#     last_name = models.CharField(
-#         max_length=256,
-#         verbose_name='Фамилия',
-#         help_text='Фамилия пользователя'
-#     )
-
-#     class Meta:
-#         verbose_name = 'пользователь'
-#         verbose_name_plural = 'Пользователи'
 
 
 class Title(models.Model):
@@ -50,12 +22,12 @@ class Title(models.Model):
         help_text='Год произведения'
     )
     genre = models.ManyToManyField(
-        Genre,
+        'Genre',
         verbose_name='Жанр',
         through='GenreTitle',
     )
     category = models.ForeignKey(
-        Category,
+        'Category',
         verbose_name='Категория',
         on_delete=models.SET_NULL,
         null=True,
@@ -97,7 +69,7 @@ class Category(models.Model):
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
-        Genre,
+        'Genre',
         on_delete=models.SET_NULL,
         blank=True,
         null=True
@@ -177,9 +149,6 @@ class Review(models.Model):
             ),
         ]
 
-    def __str__(self) -> str:
-        return self.name
-
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -212,6 +181,3 @@ class Comment(models.Model):
         ordering = ['-pub_date']
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-
-    def __str__(self) -> str:
-        return self.name
