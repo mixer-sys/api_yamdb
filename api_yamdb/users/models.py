@@ -18,12 +18,13 @@ class User(AbstractUser):
         'Дата регистрации',
         auto_now_add=True
     )
-    role = models.PositiveSmallIntegerField(
+    role = models.CharField(
         'Роль пользователя',
+        max_length=9,
         choices=CHOICES,
         blank=True,
         null=True,
-        default=3,
+        default='user',
     )
     bio = models.TextField(
         'Биография',
