@@ -4,15 +4,23 @@ from rest_framework.routers import SimpleRouter
 
 from users.views import (UserViewSet, CreateUserView,
                          get_token_jwt, SelfView)
-from api.views import (CommentViewSet, TitleViewSet,
-                       ReviewViewSet)
+from api.views import (
+    CategoryViewSet,
+    CommentViewSet,
+    GenreViewSet,
+    ReviewViewSet,
+    TitleViewSet,
+    ReviewViewSet,
+)
 
 
 app_name = 'api'
 
 router_api_v1 = SimpleRouter()
+router_api_v1.register('categories', CategoryViewSet)
+router_api_v1.register('genres', GenreViewSet)
+router_api_v1.register('titles', TitlesViewSet)
 router_api_v1.register(r'users', UserViewSet, basename='user')
-router_api_v1.register(r'titles', TitleViewSet)
 router_api_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet
