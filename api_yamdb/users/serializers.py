@@ -25,3 +25,9 @@ class UserConfirmationSerializer(serializers.ModelSerializer):
             'email',
             'username',
         )
+
+
+class ConfirmationCodeSerializer(serializers.Serializer):
+
+    email = serializers.EmailField(required=True)
+    confirmation_code = serializers.CharField(required=True)
