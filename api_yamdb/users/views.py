@@ -14,6 +14,10 @@ from users.serializers import (UserSerializer, UserConfirmationSerializer,
                                ConfirmationCodeSerializer)
 
 
+class SelfView():
+    pass
+
+
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()

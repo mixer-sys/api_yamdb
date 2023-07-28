@@ -9,7 +9,7 @@ from api.views import (
     CommentViewSet,
     GenreViewSet,
     ReviewViewSet,
-    TitleViewSet,
+    TitlesViewSet,
     ReviewViewSet,
 )
 
