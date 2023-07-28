@@ -15,3 +15,13 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role'
         )
+
+
+class UserConfirmationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username',
+        )
