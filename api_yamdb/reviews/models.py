@@ -53,6 +53,7 @@ class Category(models.Model):
     )
     slug = models.SlugField(
         'Идентификатор',
+        max_length=50,
         unique=True,
         help_text='Идентификатор категории; '
                   'разрешены символы латиницы, цифры, '
@@ -91,6 +92,7 @@ class Genre(models.Model):
     )
     slug = models.SlugField(
         'Идентификатор',
+        max_length=50,
         unique=True,
         help_text='Идентификатор жанра; '
                   'разрешены символы латиницы, цифры, '
