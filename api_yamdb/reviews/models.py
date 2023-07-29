@@ -2,6 +2,7 @@ import datetime as dt
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from users.models import User
+
 max_year_title = dt.date.today().year
 
 
@@ -144,12 +145,12 @@ class Review(models.Model):
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('pub_date',)
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
-                fields=['title', 'author'],
+                fields=('title', 'author'),
                 name='unique_review'
             ),
-        ]
+        )
 
 
 class Comment(models.Model):
