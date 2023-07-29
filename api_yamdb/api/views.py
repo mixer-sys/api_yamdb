@@ -149,11 +149,3 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-
-
-class UserMeViewSet(viewsets.ModelViewSet):
-    # queryset = User.objects.all()
-    serializer_class = TitleSerializer
-
-    def get_queryset(self):
-        return super().get_queryset()
