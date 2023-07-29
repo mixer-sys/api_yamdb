@@ -73,14 +73,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-
-
-class UserMeSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username', queryset=User.objects.all(),
-        default=serializers.CurrentUserDefault()
-    )
-
-    class Meta:
-        fields = ('username', 'email', 'author', 'pub_date')
-        model = Comment
