@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from users.views import (
     UserViewSet, CreateUserView,
-    get_token_jwt
+    get_token_jwt, SelfView,
 )
 from api.views import (
     CategoryViewSet, CommentViewSet,
@@ -34,5 +34,6 @@ urlpatterns = [
         get_token_jwt,
         name='token_obtain'
     ),
+    path('v1/users/me/', SelfView.as_view(), name='me'),
     path('v1/', include(router_api_v1.urls)),
 ]

@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 
 from users.models import User
@@ -13,8 +14,15 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'bio',
-            'role'
+            'role',
         )
+
+    def validate_username(self, value):
+        if re.search(r'^[a-zA-Z][a-zA-Z0-9-_]{2,25}$', value) is None:
+            raise serializers.ValidationError(
+                'Некорректное поле username!'
+            )
+        return value
 
 
 class UserConfirmationSerializer(serializers.ModelSerializer):

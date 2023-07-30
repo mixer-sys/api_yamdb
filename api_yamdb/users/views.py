@@ -1,9 +1,10 @@
 from rest_framework import viewsets, filters, generics
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.pagination import LimitOffsetPagination
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.decorators import api_view
 
@@ -11,11 +12,17 @@ from rest_framework.decorators import api_view
 from users.models import User
 from users.utils import send_mail_with_code
 from users.serializers import (UserSerializer, UserConfirmationSerializer,
-                               ConfirmationCodeSerializer)
+                               ConfirmationCodeSerializer, )
 
 
-class SelfView():
-    pass
+class SelfView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ['get', 'patch']
+
+    def get_object(self):
+        return User.objects.get(username=self.request.user.username)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -25,17 +32,39 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
     permission_classes = (IsAdminUser,)
+    http_method_names = ['get', 'patch', 'post', 'delete']
 
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserConfirmationSerializer
     permission_classes = (AllowAny,)
+    http_method_names = ['get', 'post']
 
     def create(self, request):
-        if not request.user.is_staff:
-            try:
-                user = User.objects.get(
+        try:
+            user = User.objects.get(
+                username=request.data['username'],
+                email=request.data['email'],
+            )
+            confirmation_code = default_token_generator.make_token(user)
+            send_mail_with_code(
+                request.data['username'],
+                confirmation_code,
+                request.data['email']
+            )
+            return Response(
+                request.data,
+                status=status.HTTP_200_OK
+            )
+        except Exception:
+            on_create_serializer = UserConfirmationSerializer(
+                data=request.data
+            )
+            if on_create_serializer.is_valid():
+                on_create_serializer.save()
+                user = get_object_or_404(
+                    User,
                     username=request.data['username'],
                     email=request.data['email'],
                 )
@@ -43,49 +72,15 @@ class CreateUserView(generics.CreateAPIView):
                 send_mail_with_code(
                     request.data['username'],
                     confirmation_code,
-                    request.data['email']
+                    request.data['email'],
                 )
                 return Response(
-                    request.data,
+                    on_create_serializer.data,
                     status=status.HTTP_200_OK
                 )
-            except Exception:
-                on_create_serializer = UserConfirmationSerializer(
-                    data=request.data
-                )
-                if on_create_serializer.is_valid():
-                    on_create_serializer.save()
-                    user = get_object_or_404(
-                        User,
-                        username=request.data['username'],
-                        email=request.data['email'],
-                    )
-                    confirmation_code = default_token_generator.make_token(user)
-                    send_mail_with_code(
-                        request.data['username'],
-                        confirmation_code,
-                        request.data['email'],
-                    )
-                    return Response(
-                        on_create_serializer.data,
-                        status=status.HTTP_200_OK
-                    )
-                return Response(
-                    on_create_serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        else:
-            user = User.objects.get(
-                username=request.data['username'],
-                email=request.data['email'],
-            )
-            serializer = UserConfirmationSerializer(
-                data=request.data
-            )
-            serializer.save()
             return Response(
-                on_create_serializer.data,
-                status=status.HTTP_201_CREATED
+                on_create_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 
