@@ -22,6 +22,11 @@ class Title(models.Model):
             MaxValueValidator(max_year_title)],
         help_text='Год произведения'
     )
+    description = models.TextField(
+        'Описание произведения',
+        max_length=1000,
+        blank=True,
+    )
     genre = models.ManyToManyField(
         'Genre',
         verbose_name='Жанр',
