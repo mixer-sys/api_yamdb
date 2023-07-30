@@ -1,45 +1,75 @@
-from rest_framework import viewsets, filters, generics
+from rest_framework import filters, generics
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.pagination import LimitOffsetPagination
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.decorators import api_view
 
 
 from users.models import User
+from api.permissions import IsAdmin
 from users.utils import send_mail_with_code
-from users.serializers import (UserSerializer, UserConfirmationSerializer,
-                               ConfirmationCodeSerializer, )
+from users.serializers import (UsersSerializer, SignupSerializer,
+                               ConfirmationCodeSerializer,
+                               UsersNoRoleSerializer,
+                               UserCreateSerializer,
+                               UserUpdateSerializer)
 
 
 class SelfView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
     http_method_names = ['get', 'patch']
 
     def get_object(self):
         return User.objects.get(username=self.request.user.username)
 
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UsersSerializer
+        else:
+            return UsersNoRoleSerializer
 
-class UserViewSet(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
+
+class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
+    pagination_class = LimitOffsetPagination
+    permission_classes = (IsAdmin,)
+    http_method_names = ['get', 'post']
+
+    def get_serializer_class(self):
+        if (
+            self.request.method == 'GET'
+        ):
+            return UsersSerializer
+        return UserCreateSerializer
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
-    permission_classes = (IsAdminUser,)
-    http_method_names = ['get', 'patch', 'post', 'delete']
+    lookup_url_kwarg = 'username'
+    http_method_names = ['get', 'patch', 'delete']
+
+    def get_serializer_class(self):
+        if (
+            self.request.method == 'GET'
+            or self.request.method == 'DELETE'
+        ):
+            return UsersSerializer
+        return UserUpdateSerializer
 
 
-class CreateUserView(generics.CreateAPIView):
+class SignUpUserView(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserConfirmationSerializer
-    permission_classes = (AllowAny,)
-    http_method_names = ['get', 'post']
+    serializer_class = SignupSerializer
+    http_method_names = ['post']
 
     def create(self, request):
         try:
@@ -58,7 +88,7 @@ class CreateUserView(generics.CreateAPIView):
                 status=status.HTTP_200_OK
             )
         except Exception:
-            on_create_serializer = UserConfirmationSerializer(
+            on_create_serializer = SignupSerializer(
                 data=request.data
             )
             if on_create_serializer.is_valid():
