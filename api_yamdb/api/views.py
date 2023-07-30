@@ -30,15 +30,15 @@ class CategoryViewSet(CreateDestroyListViewSet):
     search_fields = ('name',)
     lookup_field = 'slug'
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        name = serializer.validated_data.get('name')
-        if len(name) > 256:
-            return Response({"error": "Название произведения не должно быть длиннее 256 символов."}, status=status.HTTP_400_BAD_REQUEST)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     name = serializer.validated_data.get('name')
+    #     if len(name) > 256:
+    #         return Response({"error": "Название произведения не должно быть длиннее 256 символов."}, status=status.HTTP_400_BAD_REQUEST)
+    #     self.perform_create(serializer)
+    #     headers = self.get_success_headers(serializer.data)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
