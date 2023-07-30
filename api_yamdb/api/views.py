@@ -72,7 +72,23 @@ class TitleViewSet(viewsets.ModelViewSet):
             )
             else TitleSerializer
         )
+    def create(self, request, *args, **kwargs):
+        user = get_object_or_404(User, username=self.request.user)
+        if user.role not in ('admin',):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return super().create(request, *args, **kwargs)
 
+    def update(self, request, *args, **kwargs):
+        user = get_object_or_404(User, username=self.request.user)
+        if user.role not in ('admin',):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        user = get_object_or_404(User, username=self.request.user)
+        if user.role not in ('admin',):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
