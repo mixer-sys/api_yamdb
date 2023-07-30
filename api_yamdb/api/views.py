@@ -10,7 +10,7 @@ from api.serializers import (
 from reviews.models import Category, Genre, Title, Review
 from users.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-#from api.permissions import IsAdminOrReadOnly
+##from api.permissions import IsAdminOrReadOnly
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
