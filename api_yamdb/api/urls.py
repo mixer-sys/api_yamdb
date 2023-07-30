@@ -7,7 +7,7 @@ from users.views import (
 from api.views import (
     CategoryViewSet, CommentViewSet,
     GenreViewSet, ReviewViewSet,
-    TitlesViewSet, ReviewViewSet,
+    TitleViewSet, ReviewViewSet,
 )
 
 app_name = 'api'
@@ -15,7 +15,7 @@ app_name = 'api'
 router_api_v1 = SimpleRouter()
 router_api_v1.register(r'categories', CategoryViewSet)
 router_api_v1.register(r'genres', GenreViewSet)
-router_api_v1.register(r'titles', TitlesViewSet)
+router_api_v1.register(r'titles', TitleViewSet)
 router_api_v1.register(r'users', UserViewSet, basename='user')
 router_api_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
