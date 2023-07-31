@@ -153,12 +153,12 @@ class SignupSerializer(serializers.ModelSerializer):
 
 class ConfirmationCodeSerializer(serializers.Serializer):
 
-    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
         fields = (
-            'email',
+            'username',
             'confirmation_code',
         )

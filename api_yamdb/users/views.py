@@ -17,6 +17,7 @@ from users.serializers import (UsersSerializer, SignupSerializer,
                                UsersNoRoleSerializer,
                                UserCreateSerializer,
                                UserUpdateSerializer)
+from rest_framework import viewsets
 
 
 class SelfView(generics.RetrieveUpdateAPIView):
@@ -39,6 +40,8 @@ class UserView(generics.ListCreateAPIView):
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAdmin,)
     http_method_names = ['get', 'post']
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     def get_serializer_class(self):
         if (
@@ -118,14 +121,18 @@ class SignUpUserView(generics.CreateAPIView):
 def get_token_jwt(request):
     serializer = ConfirmationCodeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data.get('email')
+    username = serializer.validated_data.get('username')
     confirmation_code = serializer.validated_data.get('confirmation_code')
-    user = get_object_or_404(User, email=email)
+    user = get_object_or_404(User, username=username)
+
     if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
         response = {
             'token': str(token)
         }
         return Response(response, status=status.HTTP_200_OK)
-    response = {'confirmation_code': 'Код подтверждения не соответствует!'}
-    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        response = {'confirmation_code': 'Код подтверждения не соответствует!'}
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    
