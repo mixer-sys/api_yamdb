@@ -17,6 +17,7 @@ from users.serializers import (UsersSerializer, SignupSerializer,
                                UsersNoRoleSerializer,
                                UserCreateSerializer,
                                UserUpdateSerializer)
+from rest_framework import viewsets
 
 
 class SelfView(generics.RetrieveUpdateAPIView):
@@ -39,6 +40,8 @@ class UserView(generics.ListCreateAPIView):
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAdmin,)
     http_method_names = ['get', 'post']
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     def get_serializer_class(self):
         if (
