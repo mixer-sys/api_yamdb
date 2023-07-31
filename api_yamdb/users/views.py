@@ -17,7 +17,6 @@ from users.serializers import (UsersSerializer, SignupSerializer,
                                UsersNoRoleSerializer,
                                UserCreateSerializer,
                                UserUpdateSerializer)
-from rest_framework import viewsets
 
 
 class SelfView(generics.RetrieveUpdateAPIView):
