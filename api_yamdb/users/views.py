@@ -134,5 +134,3 @@ def get_token_jwt(request):
     else:
         response = {'confirmation_code': 'Код подтверждения не соответствует!'}
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-    
