@@ -12,6 +12,12 @@ class User(AbstractUser):
         blank=False,
         null=False,
     )
+    email = models.EmailField(
+        'Адрес эл.почты',
+        unique=True,
+        max_length=254,
+        blank=True
+    )
     first_name = models.CharField('Имя', max_length=150, blank=True)
     last_name = models.CharField('Фамилия', max_length=150, blank=True)
     date_joined = models.DateTimeField(
