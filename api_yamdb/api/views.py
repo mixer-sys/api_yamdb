@@ -1,19 +1,17 @@
 from django.db.models import Avg
-from django_filters.rest_framework import (
-    DjangoFilterBackend, FilterSet, CharFilter, NumberFilter,
-)
-from rest_framework import filters, viewsets
-from api.serializers import (
-    CategorySerializer, GenreSerializer, TitleCreateSerializer,
-    TitleSerializer, ReviewSerializer, CommentSerializer
-)
-from reviews.models import Category, Genre, Title, Review
-from users.models import User
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
+                                           FilterSet, NumberFilter)
+from rest_framework import filters, status, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+
 from api.permissions import IsAdminOrReadOnly
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             TitleCreateSerializer, TitleSerializer)
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
