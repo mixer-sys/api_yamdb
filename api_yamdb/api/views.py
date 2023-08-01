@@ -1,83 +1,49 @@
 from django.db.models import Avg
-from django_filters.rest_framework import (
-    DjangoFilterBackend, FilterSet, CharFilter, NumberFilter,
-)
-from rest_framework import filters, viewsets
-from api.serializers import (
-    CategorySerializer, GenreSerializer, TitleCreateSerializer,
-    TitleSerializer, ReviewSerializer, CommentSerializer
-)
-from reviews.models import Category, Genre, Title, Review
-from users.models import User
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
+                                           FilterSet, NumberFilter)
+from rest_framework import filters, status, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+
+from api.permissions import IsAdminOrReadOnly
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             TitleCreateSerializer, TitleSerializer)
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
-
-    def create(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def destroy(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name', 'slug',)
+    search_fields = ('name',)
 
     def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, )
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name', 'slug',)
+    search_fields = ('name',)
 
     def retrieve(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role in ('admin',):
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().retrieve(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().create(request, *args, **kwargs)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def update(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role in ('admin',):
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        if user.role in ('user', 'moderator'):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class TitleFilters(FilterSet):
@@ -88,7 +54,7 @@ class TitleFilters(FilterSet):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ['name', 'year', 'genre', 'category']
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -96,39 +62,15 @@ class TitleViewSet(viewsets.ModelViewSet):
         'name'
     )
     serializer_class = TitleSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = TitleFilters
+    search_fields = ('name', 'genre', 'category')
 
     def get_serializer_class(self):
-        return (
-            TitleCreateSerializer
-            if self.request.method
-            in (
-                'POST',
-                'PUT',
-                'PATCH',
-            )
-            else TitleSerializer
-        )
-
-    def create(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=self.request.user)
-        if user.role not in ('admin',):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+        if self.request.method == 'GET':
+            return TitleSerializer
+        return TitleCreateSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
