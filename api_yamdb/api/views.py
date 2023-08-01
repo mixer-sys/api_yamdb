@@ -3,18 +3,24 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
                                            FilterSet, NumberFilter)
 from rest_framework import filters, status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from api.permissions import IsAdminOrReadOnly
+from api.permissions import IsAdminOrReadOnly, IsAdminModeratorOrReadOnly
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer)
 from reviews.models import Category, Genre, Review, Title
-from users.models import User
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class BaseModelViewSet(viewsets.ModelViewSet):
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class CategoryViewSet(BaseModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -23,14 +29,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     filterset_fields = ('name', 'slug',)
     search_fields = ('name',)
 
-    def retrieve(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(BaseModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -38,12 +38,6 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug',)
     search_fields = ('name',)
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class TitleFilters(FilterSet):
@@ -54,7 +48,7 @@ class TitleFilters(FilterSet):
 
     class Meta:
         model = Title
-        fields = ['name', 'year', 'genre', 'category']
+        fields = ('name', 'year', 'genre', 'category')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -75,10 +69,10 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminModeratorOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
-        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         if title.reviews.filter(author=self.request.user).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return super().create(request, *args, **kwargs)
@@ -87,59 +81,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user,
                         title_id=self.kwargs.get('title_id'))
 
-    def update(self, request, *args, **kwargs):
-        title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        review = get_object_or_404(title.reviews, id=self.kwargs['pk'])
-        if review.author != self.request.user:
-            user = get_object_or_404(User, username=self.request.user)
-            if user.role not in ('moderator', 'admin'):
-                return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        review = get_object_or_404(title.reviews, id=self.kwargs['pk'])
-        if review.author != self.request.user:
-            user = get_object_or_404(User, username=self.request.user)
-            if user.role not in ('moderator', 'admin'):
-                return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
-
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         return title.reviews.all()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    # queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdminModeratorOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
-        get_object_or_404(Review, id=self.kwargs['review_id'])
+        get_object_or_404(Review, id=self.kwargs.get('review_id'))
         return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user,
                         review_id=self.kwargs.get('review_id'))
-
-    def update(self, request, *args, **kwargs):
-        review = get_object_or_404(Review, id=self.kwargs['review_id'])
-        comment = get_object_or_404(review.comments, id=self.kwargs['pk'])
-        if comment.author != self.request.user:
-            user = get_object_or_404(User, username=self.request.user)
-            if user.role not in ('moderator', 'admin'):
-                return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        review = get_object_or_404(Review, id=self.kwargs['review_id'])
-        comment = get_object_or_404(review.comments, id=self.kwargs['pk'])
-        if comment.author != self.request.user:
-            user = get_object_or_404(User, username=self.request.user)
-            if user.role not in ('moderator', 'admin'):
-                return Response(status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
