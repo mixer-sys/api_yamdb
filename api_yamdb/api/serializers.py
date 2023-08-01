@@ -4,6 +4,8 @@ from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
 from django.db.models import Avg
 
+YEAR_VALIDATION_ERROR_MESSAGE = 'Год выпуска не может быть больше настоящего'
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,9 +34,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     def validate_year(self, value):
         current_year = dt.date.today().year
         if value > current_year:
-            raise serializers.ValidationError(
-                'Год выпуска не может быть больше настоящего'
-            )
+            raise serializers.ValidationError(YEAR_VALIDATION_ERROR_MESSAGE)
         return value
 
 
@@ -45,15 +45,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category',
-            'rating',
-        )
+        fields = ('id', 'name', 'year', 'description', 'genre',
+                  'category', 'rating',)
 
     def get_rating(self, obj):
         rating = Review.objects.filter(

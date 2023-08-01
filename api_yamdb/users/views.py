@@ -1,14 +1,11 @@
-from rest_framework import filters, generics
+from rest_framework import filters, generics, status
 from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.tokens import default_token_generator
+from rest_framework.decorators import api_view
 from rest_framework.pagination import LimitOffsetPagination
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.decorators import api_view
-
-
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 from users.models import User
 from api.permissions import IsAdmin
 from users.utils import send_mail_with_code
@@ -17,13 +14,14 @@ from users.serializers import (UsersSerializer, SignupSerializer,
                                UsersNoRoleSerializer,
                                UserCreateSerializer,
                                UserUpdateSerializer)
-from rest_framework import viewsets
+
+CONFIRMATION_CODE_ERROR = 'Код подтверждения не соответствует!'
 
 
-class SelfView(generics.RetrieveUpdateAPIView):
+class SelfGenericView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     permission_classes = (IsAuthenticated,)
-    http_method_names = ['get', 'patch']
+    http_method_names = ('get', 'patch')
 
     def get_object(self):
         return User.objects.get(username=self.request.user.username)
@@ -35,30 +33,28 @@ class SelfView(generics.RetrieveUpdateAPIView):
             return UsersNoRoleSerializer
 
 
-class UserView(generics.ListCreateAPIView):
+class UserGenericView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAdmin,)
-    http_method_names = ['get', 'post']
+    http_method_names = ('get', 'post')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
     def get_serializer_class(self):
-        if (
-            self.request.method == 'GET'
-        ):
+        if self.request.method == 'GET':
             return UsersSerializer
         return UserCreateSerializer
 
 
-class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+class UserDetailGenericView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
     lookup_url_kwarg = 'username'
-    http_method_names = ['get', 'patch', 'delete']
+    http_method_names = ('get', 'patch', 'delete')
 
     def get_serializer_class(self):
         if (
@@ -69,22 +65,22 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         return UserUpdateSerializer
 
 
-class SignUpUserView(generics.CreateAPIView):
+class SignUpUserGenericView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    http_method_names = ['post']
+    http_method_names = ('post')
 
     def create(self, request):
         try:
             user = User.objects.get(
-                username=request.data['username'],
-                email=request.data['email'],
+                username=request.data.get('username'),
+                email=request.data.get('email'),
             )
             confirmation_code = default_token_generator.make_token(user)
             send_mail_with_code(
-                request.data['username'],
+                request.data.get('username'),
                 confirmation_code,
-                request.data['email']
+                request.data.get('email')
             )
             return Response(
                 request.data,
@@ -98,14 +94,14 @@ class SignUpUserView(generics.CreateAPIView):
                 on_create_serializer.save()
                 user = get_object_or_404(
                     User,
-                    username=request.data['username'],
-                    email=request.data['email'],
+                    username=request.data.get('username'),
+                    email=request.data.get('email'),
                 )
                 confirmation_code = default_token_generator.make_token(user)
                 send_mail_with_code(
-                    request.data['username'],
+                    request.data.get('username'),
                     confirmation_code,
-                    request.data['email'],
+                    request.data.get('email'),
                 )
                 return Response(
                     on_create_serializer.data,
@@ -131,6 +127,5 @@ def get_token_jwt(request):
             'token': str(token)
         }
         return Response(response, status=status.HTTP_200_OK)
-    else:
-        response = {'confirmation_code': 'Код подтверждения не соответствует!'}
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    response = {'confirmation_code': CONFIRMATION_CODE_ERROR}
+    return Response(response, status=status.HTTP_400_BAD_REQUEST)
