@@ -1,12 +1,11 @@
-from rest_framework import filters, generics
+from rest_framework import filters, generics, status
 from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.tokens import default_token_generator
+from rest_framework.decorators import api_view
 from rest_framework.pagination import LimitOffsetPagination
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.decorators import api_view
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 from users.models import User
 from api.permissions import IsAdmin
 from users.utils import send_mail_with_code

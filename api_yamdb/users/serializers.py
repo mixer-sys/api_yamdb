@@ -6,6 +6,7 @@ EMAIL_EXIST_MESSAGE = 'Пользователь с таким email сущест
 USERNAME_EXIST_MESSAGE = 'Пользователь с таким username существует!'
 EMAIL_ERROR_MESSAGE = 'Некорректное значение email'
 USERNAME_ERROR_MESSAGE = 'Некорректное поле username!'
+REGULAR_EXPRESSION = r'^[a-zA-Z0-9_.-]*$'
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -27,7 +28,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if (
-            re.search(r'^[a-zA-Z0-9_.-]*$', value) is None
+            re.search(REGULAR_EXPRESSION, value) is None
             or len(value) > 150
         ):
             raise serializers.ValidationError(
@@ -73,7 +74,7 @@ class UsersNoRoleSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if (
-            re.search(r'^[a-zA-Z0-9_.-]*$', value) is None
+            re.search(REGULAR_EXPRESSION, value) is None
             or len(value) > 150
         ):
             raise serializers.ValidationError(
@@ -99,7 +100,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if (
-            re.search(r'^[a-zA-Z0-9_.-]*$', value) is None
+            re.search(REGULAR_EXPRESSION, value) is None
             or len(value) > 150
             or value == 'me'
         ):
