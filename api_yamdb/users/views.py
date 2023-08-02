@@ -69,7 +69,7 @@ class UserDetailGenericView(generics.RetrieveUpdateDestroyAPIView):
 class SignUpUserGenericView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    http_method_names = ('post')
+
 
     def confirmation_mail(self, user):
         confirmation_code = default_token_generator.make_token(user)
