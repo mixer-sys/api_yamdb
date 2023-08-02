@@ -1,10 +1,24 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from users.utils import CHOICES
-
 
 class User(AbstractUser):
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+    CHOICES = [
+        (ADMIN, 'Администратор'),
+        (MODERATOR, 'Модератор'),
+        (USER, 'Аутентифицированный пользователь'),
+    ]
+
+    @property
+    def is_admin(self):
+        return (
+            self.role == self.ADMIN
+            or self.is_superuser
+        )
+
     username = models.CharField(
         'Никнейм',
         max_length=25,
