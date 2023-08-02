@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
+
 from users.views import (
     UserGenericView, UserDetailGenericView, SignUpUserGenericView,
     get_token_jwt, SelfGenericView,

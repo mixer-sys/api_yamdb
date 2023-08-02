@@ -1,8 +1,11 @@
 import datetime as dt
+
 from rest_framework import serializers
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
-from django.db.models import Avg
 
 YEAR_VALIDATION_ERROR_MESSAGE = 'Год выпуска не может быть больше настоящего'
 
@@ -49,8 +52,8 @@ class TitleSerializer(serializers.ModelSerializer):
                   'category', 'rating',)
 
     def get_rating(self, obj):
-        rating = Review.objects.filter(
-            title_id=obj.id).aggregate(Avg('score')).get('score__avg')
+        title = get_object_or_404(Title, id=obj.id)
+        rating = title.reviews.all().aggregate(Avg('score')).get('score__avg')
         return rating
 
 

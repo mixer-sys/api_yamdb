@@ -1,9 +1,18 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from users.utils import CHOICES
+
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+USER = 'user'
+CHOICES = (
+    (ADMIN, 'Администратор'),
+    (MODERATOR, 'Модератор'),
+    (USER, 'Аутентифицированный пользователь'),
+)
 
 
 class User(AbstractUser):
+
     username = models.CharField(
         'Никнейм',
         max_length=25,
@@ -52,3 +61,23 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('username', 'email'),
+                name='unique_user'
+            ),
+        )
+
+    @property
+    def is_admin(self):
+        return (
+            self.role == ADMIN
+            or self.is_superuser
+        )
+
+    @property
+    def is_moderator(self):
+        return (
+            self.role == MODERATOR
+            or self.is_superuser
+        )

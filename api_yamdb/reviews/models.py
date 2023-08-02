@@ -1,9 +1,9 @@
 import datetime as dt
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from users.models import User
 
-max_year_title = dt.date.today().year
+from users.models import User
 
 
 class Title(models.Model):
@@ -17,9 +17,9 @@ class Title(models.Model):
         blank=True,
         null=True,
         db_index=True,
-        validators=[
+        validators=(
             MinValueValidator(0),
-            MaxValueValidator(max_year_title)],
+            MaxValueValidator(dt.date.today().year)),
         help_text='Год произведения'
     )
     description = models.TextField(
@@ -43,7 +43,7 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ['-year']
+        ordering = ('-year',)
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
 
@@ -61,9 +61,9 @@ class Category(models.Model):
         'Идентификатор',
         max_length=50,
         unique=True,
-        help_text='Идентификатор категории; '
-                  'разрешены символы латиницы, цифры, '
-                  'дефис и подчёркивание.'
+        help_text=('Идентификатор категории; '
+                   'разрешены символы латиницы, цифры, '
+                   'дефис и подчёркивание.')
     )
 
     class Meta:
@@ -79,11 +79,13 @@ class GenreTitle(models.Model):
         'Genre',
         on_delete=models.SET_NULL,
         blank=True,
-        null=True
+        null=True,
+        related_name='titles'
     )
     title = models.ForeignKey(
         Title,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='genres'
     )
 
     def __str__(self):
@@ -100,13 +102,13 @@ class Genre(models.Model):
         'Идентификатор',
         max_length=50,
         unique=True,
-        help_text='Идентификатор жанра; '
-                  'разрешены символы латиницы, цифры, '
-                  'дефис и подчёркивание.'
+        help_text=('Идентификатор жанра; '
+                   'разрешены символы латиницы, цифры, '
+                   'дефис и подчёркивание.')
     )
 
     class Meta:
-        ordering = ['-name']
+        ordering = ('-name',)
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
 
@@ -135,10 +137,10 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         'Рейтинг',
-        validators=[
+        validators=(
             MinValueValidator(1, 'Допустимы значения от 1 до 10'),
             MaxValueValidator(10, 'Допустимы значения от 1 до 10')
-        ]
+        )
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
@@ -186,6 +188,6 @@ class Comment(models.Model):
     )
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
