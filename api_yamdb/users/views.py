@@ -88,30 +88,23 @@ class SignUpUserGenericView(generics.CreateAPIView):
                 status=status.HTTP_200_OK
             )
         except Exception:
-            on_create_serializer = SignupSerializer(
-                data=request.data
+            on_create_serializer = SignupSerializer(data=request.data)
+            on_create_serializer.is_valid(raise_exception=True)
+
+            on_create_serializer.save()
+            user = get_object_or_404(
+                User,
+                username=request.data.get('username'),
+                email=request.data.get('email'),
             )
-            if on_create_serializer.is_valid():
-                on_create_serializer.save()
-                user = get_object_or_404(
-                    User,
-                    username=request.data.get('username'),
-                    email=request.data.get('email'),
-                )
-                confirmation_code = default_token_generator.make_token(user)
-                send_mail_with_code(
-                    request.data.get('username'),
-                    confirmation_code,
-                    request.data.get('email'),
-                )
-                return Response(
-                    on_create_serializer.data,
-                    status=status.HTTP_200_OK
-                )
-            return Response(
-                on_create_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
+            confirmation_code = default_token_generator.make_token(user)
+            send_mail_with_code(
+                request.data.get('username'),
+                confirmation_code,
+                request.data.get('email'),
             )
+
+            return Response(on_create_serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
