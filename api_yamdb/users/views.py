@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+
 from users.models import User
 from api.permissions import IsAdmin
 from users.utils import send_mail_with_code

@@ -1,5 +1,7 @@
 import re
+
 from rest_framework import serializers
+
 from users.models import User
 
 EMAIL_EXIST_MESSAGE = 'Пользователь с таким email существует!'

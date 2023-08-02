@@ -1,7 +1,6 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
-                                           FilterSet, NumberFilter)
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
 
@@ -10,6 +9,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer)
 from reviews.models import Category, Genre, Review, Title
+from api.filters import TitleFilters
 
 
 class BaseModelViewSet(viewsets.ModelViewSet):
@@ -38,17 +38,6 @@ class GenreViewSet(BaseModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug',)
     search_fields = ('name',)
-
-
-class TitleFilters(FilterSet):
-    genre = CharFilter(field_name='genre__slug')
-    category = CharFilter(field_name='category__slug')
-    year = NumberFilter(field_name='year')
-    name = CharFilter(field_name='name', lookup_expr='contains')
-
-    class Meta:
-        model = Title
-        fields = ('name', 'year', 'genre', 'category')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
