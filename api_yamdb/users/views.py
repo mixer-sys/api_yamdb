@@ -71,23 +71,21 @@ class SignUpUserGenericView(generics.CreateAPIView):
     serializer_class = SignupSerializer
     http_method_names = ('post')
 
+    def confirmation_mail(self, user):
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail_with_code(
+            self.request.data.get('username'),
+            confirmation_code,
+            self.request.data.get('email'),
+        )
+
     def create(self, request):
         try:
             user = User.objects.get(
                 username=request.data.get('username'),
                 email=request.data.get('email'),
             )
-            confirmation_code = default_token_generator.make_token(user)
-            send_mail_with_code(
-                request.data.get('username'),
-                confirmation_code,
-                request.data.get('email')
-            )
-            return Response(
-                request.data,
-                status=status.HTTP_200_OK
-            )
-        except Exception:
+        except User.DoesNotExist:
             on_create_serializer = SignupSerializer(data=request.data)
             on_create_serializer.is_valid(raise_exception=True)
 
@@ -97,15 +95,17 @@ class SignUpUserGenericView(generics.CreateAPIView):
                 username=request.data.get('username'),
                 email=request.data.get('email'),
             )
-            confirmation_code = default_token_generator.make_token(user)
-            send_mail_with_code(
-                request.data.get('username'),
-                confirmation_code,
-                request.data.get('email'),
+            self.confirmation_mail(user)
+            return Response(
+                on_create_serializer.data,
+                status=status.HTTP_200_OK
             )
-
-            return Response(on_create_serializer.data, status=status.HTTP_200_OK)
-
+        else:
+            self.confirmation_mail(user)
+            return Response(
+                request.data,
+                status=status.HTTP_200_OK
+            )
 
 @api_view(['POST'])
 def get_token_jwt(request):
