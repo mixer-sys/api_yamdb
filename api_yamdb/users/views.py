@@ -106,6 +106,7 @@ class SignUpUserGenericView(generics.CreateAPIView):
                 status=status.HTTP_200_OK
             )
 
+
 @api_view(['POST'])
 def get_token_jwt(request):
     serializer = ConfirmationCodeSerializer(data=request.data)
