@@ -1,9 +1,8 @@
-import datetime as dt
-
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
+from users.utils import current_year
 
 
 class Title(models.Model):
@@ -19,7 +18,7 @@ class Title(models.Model):
         db_index=True,
         validators=(
             MinValueValidator(0),
-            MaxValueValidator(dt.date.today().year)),
+            MaxValueValidator(current_year)),
         help_text='Год произведения'
     )
     description = models.TextField(
