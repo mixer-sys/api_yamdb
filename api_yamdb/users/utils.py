@@ -16,4 +16,4 @@ def send_mail_with_code(username, confirmation_code, email):
     )
 
 def current_year():
-       return (dt.date.today().year)
+    return (dt.date.today().year)
