@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.core.mail import send_mail
 
 from api_yamdb.settings import FROM_EMAIL
@@ -12,3 +14,6 @@ def send_mail_with_code(username, confirmation_code, email):
         recipient_list=(email,),
         fail_silently=True,
     )
+
+def current_year():
+       return (dt.date.today().year)
